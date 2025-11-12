@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 
+# Set compatibility policy to prevent warnings about older CMake versions in submodules
+if(POLICY CMP0114)
+  cmake_policy(SET CMP0114 NEW)
+endif()
+
 SET(PROJ_NAME _imcpy)
 project(${PROJ_NAME})
 
@@ -18,6 +23,22 @@ add_subdirectory(pybind11)
 add_subdirectory(dune EXCLUDE_FROM_ALL)
 include_directories(dune/src/)
 include_directories(${CMAKE_BINARY_DIR}/DUNEGeneratedFiles/src)  # Contains generated Config.hpp/Version.cpp files
+
+# Add DUNE vendor library includes (especially for json.hpp)
+include_directories(dune/vendor/libraries/json)
+include_directories(dune/vendor/libraries/bzip2)
+include_directories(dune/vendor/libraries/date)
+include_directories(dune/vendor/libraries/md5)
+include_directories(dune/vendor/libraries/pstream)
+include_directories(dune/vendor/libraries/rapidxml)
+include_directories(dune/vendor/libraries/sqlite3)
+include_directories(dune/vendor/libraries/stb)
+include_directories(dune/vendor/libraries/wmm2015)
+include_directories(dune/vendor/libraries/zlib)
+include_directories(dune/vendor/libraries/API500)
+include_directories(dune/vendor/libraries/API500/asio/include)
+include_directories(dune/vendor/libraries/API500/rapidjson/include)
+
 if(MSVC)
     include_directories(dune/vendor/libraries/pthreads-win32)
 endif()

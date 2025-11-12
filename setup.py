@@ -1,3 +1,7 @@
+"""
+Setup script for imcpy with CMake extension building.
+Most configuration is now in pyproject.toml.
+"""
 import hashlib
 import os
 import platform
@@ -33,6 +37,7 @@ class CMakeBuild(build_ext):
             )
 
         for ext in self.extensions:
+            print(ext)
             self.build_extension(ext)
 
     def build_extension(self, ext):
@@ -41,6 +46,7 @@ class CMakeBuild(build_ext):
             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
             '-DPYTHON_EXECUTABLE=' + sys.executable,
             '-DDUNE_PROGRAM_PYTHON=' + sys.executable,
+            '-DCMAKE_POLICY_VERSION_MINIMUM=3.5',  # Allow older CMake versions in submodules
         ]
 
         cfg = 'Debug' if self.debug else 'Release'
@@ -115,49 +121,25 @@ class CMakeBuild(build_ext):
         pyi.write_pyi()
 
         print('Compiling with cmake.')
+        # Configure and build from the build_temp directory
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
 
-        # Copy pyi file to out dir
-        shutil.move('_imcpy.pyi', os.path.join(extdir, '_imcpy.pyi'))
+        # Copy pyi file from source dir to extension dir
+        source_pyi = os.path.join(ext.sourcedir, '_imcpy.pyi')
+        dest_pyi = os.path.join(extdir, '_imcpy.pyi')
+        if os.path.exists(source_pyi):
+            shutil.move(source_pyi, dest_pyi)
+        else:
+            print(f"Warning: _imcpy.pyi not found at {source_pyi}")
 
         # Build was successful, write imc md5
         with open(md5_path, 'wt') as f:
             f.write(imc_md5)
 
 
-if __name__ == '__main__':
-    with open('README.md', 'r', encoding='utf-8') as fh:
-        long_description = fh.read()
-
-    setup(
-        name='imcpy',
-        version='1.1.2',
-        author='Oystein Sture',
-        author_email='oysstu@gmail.com',
-        description='Python bindings for DUNE-IMC',
-        long_description=long_description,
-        long_description_content_type='text/markdown',
-        url='https://github.com/oysstu/imcpy',
-        project_urls={
-            'Bug Tracker': 'https://github.com/oysstu/imcpy/issues',
-        },
-        license='MIT',
-        classifiers=[
-            'Programming Language :: Python :: 3',
-            'License :: OSI Approved :: MIT License',
-            'Intended Audience :: Developers',
-            'Intended Audience :: Other Audience',
-            'Intended Audience :: Science/Research',
-            'Topic :: Scientific/Engineering',
-        ],
-        packages=['imcpy', 'imcpy.actors', 'imcpy.algorithms', 'imcpy.coordinates', 'imcpy.network'],
-        python_requires='>=3.6',
-        install_requires=['ifaddr'],
-        extras_require={'LSFExporter': ['pandas']},
-        package_data={'': ['_imcpy.pyi'], 'imcpy.coordinates': ['*.pyi'], 'imcpy.algorithms': ['*.pyi']},
-        include_package_data=True,
-        ext_modules=[CMakeExtension('_imcpy')],
-        cmdclass=dict(build_ext=CMakeBuild),
-        zip_safe=False,
-    )
+# Use setuptools with pyproject.toml configuration
+setup(
+    ext_modules=[CMakeExtension('_imcpy')],
+    cmdclass={'build_ext': CMakeBuild},
+)
