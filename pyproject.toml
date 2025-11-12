@@ -3,17 +3,18 @@ requires = [
     "setuptools>=61.0.0",
     "wheel",
     "cmake>=3.8",
-    "pybind11>=2.6.0",
+    "pybind11>=2.6.0"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "imcpy"
+name = "pydune"
 version = "1.1.2"
-description = "Python bindings for DUNE-IMC"
+description = "Python bindings for DUNE-IMC and fast prototyping of navigation and control algorithms"
 readme = "README.md"
 authors = [
-    {name = "Oystein Sture", email = "oysstu@gmail.com"}
+    {name = "Oystein Sture", email = "oysstu@gmail.com"},
+    {name = "Matheus Reis", email = "mreis.oceanscan@gmail.com"}
 ]
 license = "MIT"
 classifiers = [
@@ -26,20 +27,24 @@ classifiers = [
 requires-python = ">=3.6"
 dependencies = [
     "ifaddr",
+    "numpy",
+    "matplotlib"
 ]
 
 [project.optional-dependencies]
 LSFExporter = ["pandas"]
 
 [project.urls]
-Homepage = "https://github.com/oysstu/imcpy"
-"Bug Tracker" = "https://github.com/oysstu/imcpy/issues"
+Homepage = "https://github.com/mreis-oceanscan/pydune"
 
 [tool.setuptools.packages.find]
+where = ["."]
 include = ["imcpy*"]
 
 [tool.setuptools]
-zip-safe = false
+# ...
+# By default, include-package-data is true in pyproject.toml,
+# so you do NOT have to specify this line.
 include-package-data = true
 
 [tool.setuptools.package-data]
